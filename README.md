@@ -33,10 +33,19 @@ uvicorn app.main:app --reload
 
 需要系统安装 `ffmpeg` 和一款中文字体（如 `fonts-wqy-zenhei`），否则视频渲染/字幕烧录会失败或中文显示为方块（`apt-get install -y ffmpeg fonts-wqy-zenhei`；Docker 镜像已内置）。
 
-生成一个视频（Phase 1，同步接口，需要几十秒到几分钟）：
+生成任务改成异步了（Phase 2），还需要 Redis + Celery worker：
+
+```bash
+redis-server --daemonize yes            # 或用你自己的 Redis 实例
+celery -A app.celery_app worker --loglevel=info   # 另开一个终端，在 backend/ 目录下执行
+```
+
+提交生成任务（立即返回 `pending`，由 worker 异步执行）：
 
 ```bash
 curl -X POST http://localhost:8000/generate -H "Content-Type: application/json" -d '{"query": "静夜思"}'
+# 拿到 {"id": "...", "status": "pending", ...}，轮询查看进度：
+curl http://localhost:8000/tasks/<id>
 ```
 
 在 `backend/.env` 中未配置 `ANTHROPIC_API_KEY` 时，把 `CONTENT_PROVIDER` 设为 `mock` 可用内置示例数据跑通除 Claude 之外的流程；把 `TTS_PROVIDER` 设为 `silent` 可在没有公网访问的环境下用静音占位音频跑通渲染流程（详见 `backend/.env.example` 注释）。
@@ -45,9 +54,10 @@ curl -X POST http://localhost:8000/generate -H "Content-Type: application/json" 
 
 ```bash
 cd frontend
+cp .env.local.example .env.local   # 配置后端地址 NEXT_PUBLIC_API_BASE_URL
 npm install
 npm run dev
-# 访问 http://localhost:3000
+# 访问 http://localhost:3000，搜索后会跳转到 /status/[id] 轮询进度并播放结果视频
 ```
 
 ### 一键启动（Docker Compose）
@@ -59,4 +69,4 @@ docker compose up --build
 
 ## 当前进度
 
-见 [`docs/ROADMAP.md`](docs/ROADMAP.md) 中的里程碑检查表，当前处于 **Phase 1：单条同步链路已打通**（内容检索 → 分镜脚本 → 配音 → 画面 → 字幕 → ffmpeg 剪辑合成 → 导出）。
+见 [`docs/ROADMAP.md`](docs/ROADMAP.md) 中的里程碑检查表，当前处于 **Phase 2：异步任务队列 + 前端进度页已打通**（Celery/Redis 异步执行流水线、`/status/[id]` 轮询展示分步进度、完成后播放/下载），已在浏览器中验证过完整用户路径。作品库/画廊页与对象存储迁移仍待完成。

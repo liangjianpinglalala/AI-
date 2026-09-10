@@ -10,7 +10,7 @@ from . import models
 from .config import settings
 from .db import Base, engine, get_db
 from .models import Task, TaskStatus
-from .pipeline.runner import run_pipeline
+from .tasks import generate_video_task
 
 app = FastAPI(title="古诗成语动画生成 API")
 
@@ -52,8 +52,8 @@ class TaskResponse(BaseModel):
 
 @app.post("/generate", response_model=TaskResponse)
 def generate(payload: GenerateRequest, db: Session = Depends(get_db)) -> Task:
-    """Phase 1：同步执行完整流水线并返回最终状态（Phase 2 会改为提交任务立即返回，
-    由前端轮询 /tasks/{id} 查看进度）。"""
+    """提交生成任务：命中 works 缓存直接返回已完成结果；否则创建 pending 任务并
+    投递给 Celery worker 异步执行，前端轮询 GET /tasks/{id} 查看进度。"""
     query = payload.query.strip()
     if not query:
         raise HTTPException(status_code=400, detail="query 不能为空")
@@ -73,16 +73,7 @@ def generate(payload: GenerateRequest, db: Session = Depends(get_db)) -> Task:
     db.commit()
     db.refresh(task)
 
-    task = run_pipeline(db, task)
-
-    if task.status == TaskStatus.completed and task.result_video_url:
-        work = models.Work(
-            query=query,
-            query_type=task.query_type,
-            video_url=task.result_video_url,
-        )
-        db.add(work)
-        db.commit()
+    generate_video_task.delay(task.id)
 
     return task
 

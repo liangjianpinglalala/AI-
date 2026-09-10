@@ -1,14 +1,30 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function HomePage() {
-  const [query, setQuery] = useState("");
+import { createGenerateTask } from "../lib/api";
 
-  const handleSubmit = (e: React.FormEvent) => {
+export default function HomePage() {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO(Phase 1): 调用后端 POST /tasks 提交生成任务，跳转到进度页
-    console.log("submit query:", query);
+    const trimmed = query.trim();
+    if (!trimmed || submitting) return;
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      const task = await createGenerateTask(trimmed);
+      router.push(`/status/${task.id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "生成请求失败，请稍后重试");
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -23,14 +39,17 @@ export default function HomePage() {
           placeholder="例如：静夜思 / 画蛇添足"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          disabled={submitting}
         />
         <button
           type="submit"
-          className="rounded-lg bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-700"
+          disabled={submitting}
+          className="rounded-lg bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-700 disabled:opacity-50"
         >
-          生成
+          {submitting ? "提交中…" : "生成"}
         </button>
       </form>
+      {error && <p className="text-red-500">{error}</p>}
     </main>
   );
 }

@@ -42,11 +42,12 @@
 **验收标准**：输入“静夜思”，等待后能拿到包含字幕+配音+插画的 mp4。
 
 ### Phase 2：异步化 + 体验优化
-- Celery + Redis 异步任务，前端轮询 `/tasks/{id}`
-- 每步状态落库，支持单步重试
-- `works` 缓存命中直接复用
-- 分步进度条 UI + 作品库/画廊页
-- 产物迁移到对象存储 + CDN
+- [x] Celery + Redis 异步任务，`POST /generate` 立即返回，前端轮询 `/tasks/{id}`
+- [x] 每步状态落库（`fetching_content` → … → `completed`/`failed`）
+- [x] `works` 缓存命中直接复用（Phase 1 已提前实现）
+- [x] 分步进度条 UI（首页搜索 → `/status/[id]` 进度页 → 播放器+下载）
+- [ ] 作品库/画廊页
+- [ ] 产物迁移到对象存储 + CDN（当前仍是本地磁盘 + FastAPI 静态文件服务）
 
 ### Phase 3：质量与能力升级
 - 图生视频动态画面 + 角色一致性
