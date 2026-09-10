@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.env
+
+# Node
+node_modules/
+.next/
+out/
+frontend/next-env.d.ts
+
+# OS
+.DS_Store
+
+# DB
+*.db
+*.sqlite3
+
+# 生成产物（音频/图片/视频）
+backend/media/
