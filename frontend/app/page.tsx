@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -50,6 +51,9 @@ export default function HomePage() {
         </button>
       </form>
       {error && <p className="text-red-500">{error}</p>}
+      <Link href="/gallery" className="text-neutral-500 underline hover:text-neutral-900">
+        查看作品库
+      </Link>
     </main>
   );
 }

@@ -69,4 +69,4 @@ docker compose up --build
 
 ## 当前进度
 
-见 [`docs/ROADMAP.md`](docs/ROADMAP.md) 中的里程碑检查表，当前处于 **Phase 2：异步任务队列 + 前端进度页已打通**（Celery/Redis 异步执行流水线、`/status/[id]` 轮询展示分步进度、完成后播放/下载），已在浏览器中验证过完整用户路径。作品库/画廊页与对象存储迁移仍待完成。
+见 [`docs/ROADMAP.md`](docs/ROADMAP.md) 中的里程碑检查表，**Phase 2 已完成**：Celery/Redis 异步执行流水线、`/status/[id]` 轮询展示分步进度、完成后播放/下载、`/gallery` 作品库页，均已在浏览器中验证过完整用户路径。产物迁移到对象存储 + CDN 待确定云服务商后再接入（当前是本地磁盘 + FastAPI 静态文件服务）。

@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -9,7 +10,7 @@ from sqlalchemy.orm import Session
 from . import models
 from .config import settings
 from .db import Base, engine, get_db
-from .models import Task, TaskStatus
+from .models import Task, TaskStatus, Work
 from .tasks import generate_video_task
 
 app = FastAPI(title="古诗成语动画生成 API")
@@ -84,3 +85,20 @@ def get_task(task_id: str, db: Session = Depends(get_db)) -> Task:
     if not task:
         raise HTTPException(status_code=404, detail="任务不存在")
     return task
+
+
+class WorkResponse(BaseModel):
+    id: str
+    query: str
+    query_type: str
+    video_url: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+@app.get("/works", response_model=list[WorkResponse])
+def list_works(db: Session = Depends(get_db)) -> list[Work]:
+    """作品库：已生成过的诗词/成语视频列表，按最新生成时间倒序，供画廊页展示复用。"""
+    return db.query(Work).order_by(Work.created_at.desc()).limit(50).all()

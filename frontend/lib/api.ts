@@ -40,3 +40,19 @@ export async function fetchTask(id: string): Promise<Task> {
   }
   return res.json();
 }
+
+export interface Work {
+  id: string;
+  query: string;
+  query_type: string;
+  video_url: string;
+  created_at: string;
+}
+
+export async function listWorks(): Promise<Work[]> {
+  const res = await fetch(`${API_BASE_URL}/works`, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`获取作品库失败（${res.status}）`);
+  }
+  return res.json();
+}
