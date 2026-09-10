@@ -31,6 +31,16 @@ uvicorn app.main:app --reload
 # 访问 http://localhost:8000/health
 ```
 
+需要系统安装 `ffmpeg` 和一款中文字体（如 `fonts-wqy-zenhei`），否则视频渲染/字幕烧录会失败或中文显示为方块（`apt-get install -y ffmpeg fonts-wqy-zenhei`；Docker 镜像已内置）。
+
+生成一个视频（Phase 1，同步接口，需要几十秒到几分钟）：
+
+```bash
+curl -X POST http://localhost:8000/generate -H "Content-Type: application/json" -d '{"query": "静夜思"}'
+```
+
+在 `backend/.env` 中未配置 `ANTHROPIC_API_KEY` 时，把 `CONTENT_PROVIDER` 设为 `mock` 可用内置示例数据跑通除 Claude 之外的流程；把 `TTS_PROVIDER` 设为 `silent` 可在没有公网访问的环境下用静音占位音频跑通渲染流程（详见 `backend/.env.example` 注释）。
+
 ### 前端
 
 ```bash
@@ -49,4 +59,4 @@ docker compose up --build
 
 ## 当前进度
 
-见 [`docs/ROADMAP.md`](docs/ROADMAP.md) 中的里程碑检查表，当前处于 **Phase 0：项目脚手架**。
+见 [`docs/ROADMAP.md`](docs/ROADMAP.md) 中的里程碑检查表，当前处于 **Phase 1：单条同步链路已打通**（内容检索 → 分镜脚本 → 配音 → 画面 → 字幕 → ffmpeg 剪辑合成 → 导出）。
